@@ -4,12 +4,11 @@ import { AuthController } from './auth.controller';
 import { UsersModule } from 'src/users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { AuthGuard } from './auth.guard';
-import { APP_GUARD } from '@nestjs/core';
-
+import { FortyTwoStrategy } from './42.strategy';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
-  imports: [
+  imports: [PassportModule,
     UsersModule, 
     JwtModule.registerAsync({
       useFactory: async (configService: ConfigService) => ({
@@ -20,10 +19,8 @@ import { APP_GUARD } from '@nestjs/core';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, 
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard,
-    },],
+  providers: [
+    AuthService,
+  ]
 })
 export class AuthModule {}

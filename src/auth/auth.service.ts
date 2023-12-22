@@ -20,8 +20,13 @@ export class AuthService {
             access_token: this.jwtService.sign(payload),
             };
     }
+
+    async validateUser(email: string, pass: string): Promise<SignInDto | null> {
         // const result  = user;
         // // TODO: Generate a JWT and return it here
         // // instead of the user object
         // return result;
+        console.log(email);
+        return null;
+    }
 }
