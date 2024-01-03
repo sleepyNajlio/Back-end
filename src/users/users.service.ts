@@ -1,60 +1,77 @@
 import { Injectable , HttpException, HttpStatus} from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { SignUpDTO, FinishSignUpDTO } from './dto/SignUp.dto';
 import { PrismaService} from '../prisma/prisma.service';
 
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
+  
+  async findByUsername(username: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { username: username},
+    });
+    // if (!user) return new HttpException('User not found', HttpStatus.NOT_FOUND);
+    return user;
+  }
 
-  async signUp(createUserDto: CreateUserDto) {
+  async findByEmail(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: email},
+    });
+    // if (!user) return new HttpException('User not found', HttpStatus.NOT_FOUND);
+    return user;
+  }
+
+  async signUp(SignUpDTO: SignUpDTO) {
     const userExists = await this.prisma.user.findUnique({
-      where: { email: createUserDto.email }
+      where: { email: SignUpDTO.email }
     });
     if (userExists) {
-      return new HttpException('User already exists', HttpStatus.CONFLICT) ;
+      throw new HttpException('User already exists', HttpStatus.CONFLICT) ;
     }
     const user = await this.prisma.user.create({
-      data: createUserDto,
+      data: SignUpDTO,
     });
     
     return user;
   }
+
+  async finishSignUp(dto: SignUpDTO) {
+    let userExists = await this.prisma.user.findUnique({
+      where: { email: dto.email }
+    });
+    if (userExists.isAuthenticated) {
+      throw new HttpException('User already authenticated', HttpStatus.CONFLICT) ;
+    }
+    userExists = await this.updateProfile({
+      email: dto.email,
+      username: dto.username,
+      avatar: dto.avatar,
+      isAuthenticated: true,
+    });
+    return userExists;
+  }
+
 
   async findAll() {
     const users = await this.prisma.user.findMany();
     return users;
   }
 
-  async findOne(id: number) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: id },
+  async updateProfile(FinishSignUpDTO: FinishSignUpDTO) {
+    let userExists = await this.prisma.user.findUnique({
+      where: { email: FinishSignUpDTO.email }
     });
-    return user;
-  }
-
-  async findMail(email: string) {
-    console.log(email);
-    const user = await this.prisma.user.findUnique({
-      where: { email: email},
-    });
-    return user;
-  }
-
-
-  async update(id: number, updateUserDto: UpdateUserDto) {
+    if (!userExists) {
+      throw new HttpException('User does not exist', HttpStatus.NOT_FOUND) ;
+    }
+    
     const user = await this.prisma.user.update({
-      where: { id: id },
-      data: updateUserDto,
+      where: { email: FinishSignUpDTO.email },
+      data: FinishSignUpDTO,
     });
     return user;
   }
 
-  async remove(id: number) {
-    const user = await this.prisma.user.delete({
-      where: { id: id },
-    });
-    return user;
-  }
 }

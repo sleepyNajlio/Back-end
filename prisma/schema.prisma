@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,8 +11,22 @@ datasource db {
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id_player       Int          @id @default(autoincrement())
+  username        String       @unique
+  avatar          String       @unique
+  email           String       @unique
+  isAuthenticated Boolean?     @default(false)
+  level           Int          @default(1)
+  status          UserStatus   @default(OFFLINE)
+  wins            Int          @default(0)
+  loses           Int          @default(0)
+  twofa           Boolean?     @default(false)
+  twoFASecret     String?
 }
- 
+
+enum UserStatus {
+  ONLINE
+  OFFLINE
+}
+
+
